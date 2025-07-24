@@ -6,5 +6,5 @@ export const useRiddlesCollection = () => {
         queryKey: ['riddles'],
         queryFn: fetchRiddlesCollection,
     });
-    return data;
+    return { collection: data };
 };

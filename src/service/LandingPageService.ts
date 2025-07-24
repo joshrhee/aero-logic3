@@ -1,4 +1,4 @@
-import { Riddle } from './RiddleService';
+import { Riddle, getRandomRiddleId } from './RiddleService';
 
 export const createLandingPageViewModel = (riddles: Riddle[]) => {
     const date = new Date();
@@ -21,8 +21,7 @@ export const createLandingPageViewModel = (riddles: Riddle[]) => {
         workInterval = 'Sleepies';
     }
 
-    const ids = riddles.map(({ id: riddleId }) => riddleId);
-    const id = ids[Math.floor(Math.random() * ids.length)];
+    const id = getRandomRiddleId(riddles);
 
     return {
         workInterval,

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import classNames from 'classnames';
 import { getAnswerFor } from 'riddle-exam';
+import { useResolveRiddle } from './use-case/use-resolve-riddle';
+import { fetchRiddleById } from './adapter/RiddleAdpater';
 
 type Riddle = {
     id: string;
@@ -14,50 +16,38 @@ type Riddle = {
 
 export const RiddlePage = () => {
     const { id } = useParams<{ id: string }>();
-    const [riddle, setRiddle] = useState<Riddle>();
-    const [isLoading, setIsLoading] = useState(true);
-    const [correct, setCorrect] = useState<{ id: string }>();
-    const [selected, setSelected] = useState<string>();
-    const [random, setRandom] = useState<string>();
+    // const [correct, setCorrect] = useState<{ id: string }>();
+    // const [selected, setSelected] = useState<string>();
 
-    const handleClick = async (id: string) => {
-        if (selected) {
-            return;
-        }
+    const {
+        randomRiddleId: random,
+        riddle,
+        isRiddleLoading,
+        correct,
+        selected,
+        handleClick,
+    } = useResolveRiddle(id!);
 
-        setSelected(id);
+    // const handleClick = async (id: string) => {
+    //     if (selected) {
+    //         return;
+    //     }
 
-        const data = await getAnswerFor(riddle!.id);
+    //     setSelected(id);
 
-        setCorrect(data);
-    };
+    //     const data = await getAnswerFor(riddle!.id);
+
+    //     setCorrect(data);
+    // };
 
     const sorted = useMemo(
+        // Refactor
         () => riddle?.answers?.toSorted(() => Math.random() - 0.5),
         [riddle?.answers],
     );
 
-    useEffect(() => {
-        if (correct) {
-            fetch('http://localhost:3000/riddles')
-                .then((response) => response.json())
-                .then((riddles: Riddle[]) => {
-                    const ids = riddles
-                        .map(({ id: riddleId }) => riddleId)
-                        .filter((riddleId) => riddleId !== id);
-                    setRandom(ids[Math.floor(Math.random() * ids.length)]);
-                });
-        }
-    }, [correct]);
-
-    useEffect(() => {
-        fetch(`http://localhost:3000/riddles/${id}`)
-            .then((response) => response.json())
-            .then(setRiddle)
-            .finally(() => setIsLoading(false));
-    }, []);
-
-    if (!riddle || !sorted || isLoading) {
+    if (!riddle || !sorted || isRiddleLoading) {
+        // Refactor
         return null;
     }
 
@@ -74,7 +64,7 @@ export const RiddlePage = () => {
                             'cursor-pointer': !selected,
                             'border-blue-500': !correct,
                             "border-green-700 text-green-900 before:content-['✓']":
-                                selected === answer.id &&
+                                selected === answer.id && //Refactor
                                 correct &&
                                 correct.id === answer.id,
                             "border-red-700 text-red-800  before:content-['✗']":
@@ -87,13 +77,15 @@ export const RiddlePage = () => {
                     </li>
                 ))}
             </ul>
-            {selected && correct && selected === correct.id && (
-                <div className="bg-green-400 my-6 p-3">
-                    {"Great job! You're right 🙏"}
-                </div>
-            )}
+            {selected &&
+                correct &&
+                selected === correct.id && ( // Refactor: resolution state enum correct wrong undefined, use `state`
+                    <div className="bg-green-400 my-6 p-3">
+                        {"Great job! You're right 🙏"}
+                    </div>
+                )}
             {selected && correct && selected !== correct.id && (
-                <div className="bg-red-300  my-6 p-3">
+                <div className="bg-red-300 my-6 p-3">
                     {'This time your answer is wrong.'}
                 </div>
             )}
