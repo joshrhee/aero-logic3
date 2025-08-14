@@ -1,23 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import classNames from 'classnames';
-import { getAnswerFor } from 'riddle-exam';
 import { useResolveRiddle } from './use-case/use-resolve-riddle';
-import { fetchRiddleById } from './adapter/RiddleAdpater';
-
-type Riddle = {
-    id: string;
-    contents: string;
-    answers: {
-        id: string;
-        text: string;
-    }[];
-};
 
 export const RiddlePage = () => {
     const { id } = useParams<{ id: string }>();
-    // const [correct, setCorrect] = useState<{ id: string }>();
-    // const [selected, setSelected] = useState<string>();
 
     const {
         randomRiddleId: random,
@@ -27,18 +14,6 @@ export const RiddlePage = () => {
         selected,
         handleClick,
     } = useResolveRiddle(id!);
-
-    // const handleClick = async (id: string) => {
-    //     if (selected) {
-    //         return;
-    //     }
-
-    //     setSelected(id);
-
-    //     const data = await getAnswerFor(riddle!.id);
-
-    //     setCorrect(data);
-    // };
 
     const sorted = useMemo(
         // Refactor

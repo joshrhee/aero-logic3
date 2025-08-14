@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRiddleById } from '../repository/useRiddleById';
 import { useRiddlesCollection } from '../repository/useRiddlesCollection';
 import { createResolveRiddleViewModel } from '../service/ResolveRiddleService';
+import { getAnswerFor } from 'riddle-exam';
 
 export const useResolveRiddle = (id: string) => {
     const { collection } = useRiddlesCollection();
