@@ -1,72 +1,64 @@
-import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import classNames from 'classnames';
 import { useResolveRiddle } from './use-case/use-resolve-riddle';
+import { ResolutionState } from './service/ResolveRiddleService';
 
 export const RiddlePage = () => {
     const { id } = useParams<{ id: string }>();
 
     const {
-        randomRiddleId: random,
-        riddle,
+        randomRiddleId,
+        contentsHtml,
+        answers,
+        state,
+        canPlayAgain,
         isRiddleLoading,
-        correct,
-        selected,
         handleClick,
     } = useResolveRiddle(id!);
 
-    const sorted = useMemo(
-        // Refactor
-        () => riddle?.answers?.toSorted(() => Math.random() - 0.5),
-        [riddle?.answers],
-    );
-
-    if (!riddle || !sorted || isRiddleLoading) {
-        // Refactor
-        return null;
-    }
+    if (isRiddleLoading) return null;
 
     return (
         <main className="text-lg">
-            <p dangerouslySetInnerHTML={{ __html: riddle.contents }} className="mb-16" />
+            {contentsHtml && (
+                <p dangerouslySetInnerHTML={{ __html: contentsHtml }} className="mb-16" />
+            )}
             <p className="mb-5">Possible answers:</p>
             <ul>
-                {sorted.map((answer) => (
+                {answers.map((answer) => (
                     <li
                         key={answer.id}
                         onClick={() => handleClick(answer.id)}
                         className={classNames('border py-2 pl-3 pr-2 my-1', {
-                            'cursor-pointer': !selected,
-                            'border-blue-500': !correct,
+                            'cursor-pointer': answer.isClickable,
+                            'border-blue-500': state === ResolutionState.Undefined,
                             "border-green-700 text-green-900 before:content-['✓']":
-                                selected === answer.id && //Refactor
-                                correct &&
-                                correct.id === answer.id,
+                                answer.isCorrectSelected,
                             "border-red-700 text-red-800  before:content-['✗']":
-                                selected === answer.id &&
-                                correct &&
-                                correct.id !== answer.id,
+                                answer.isWrongSelected,
                         })}
                     >
                         <span className="pl-2">{answer.text}</span>
                     </li>
                 ))}
             </ul>
-            {selected &&
-                correct &&
-                selected === correct.id && ( // Refactor: resolution state enum correct wrong undefined, use `state`
-                    <div className="bg-green-400 my-6 p-3">
-                        {"Great job! You're right 🙏"}
-                    </div>
-                )}
-            {selected && correct && selected !== correct.id && (
+            {state === ResolutionState.Correct && (
+                <div className="bg-green-400 my-6 p-3">
+                    {"Great job! You're right 🙏"}
+                </div>
+            )}
+            {state === ResolutionState.Wrong && (
                 <div className="bg-red-300 my-6 p-3">
                     {'This time your answer is wrong.'}
                 </div>
             )}
-            {correct && random && (
+            {canPlayAgain && randomRiddleId && (
                 <div className="mt-5">
-                    <Link to={`/riddle/${random}`} reloadDocument className="underline">
+                    <Link
+                        to={`/riddle/${randomRiddleId}`}
+                        reloadDocument
+                        className="underline"
+                    >
                         Play one more
                     </Link>
                 </div>

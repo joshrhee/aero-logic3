@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRiddleById } from '../repository/useRiddleById';
 import { useRiddlesCollection } from '../repository/useRiddlesCollection';
-import { createResolveRiddleViewModel } from '../service/ResolveRiddleService';
+import {
+    createResolveRiddleViewModel,
+    shuffleAnswers,
+} from '../service/ResolveRiddleService';
 import { getAnswerFor } from 'riddle-exam';
 
 export const useResolveRiddle = (id: string) => {
@@ -23,7 +26,17 @@ export const useResolveRiddle = (id: string) => {
         setCorrect(data);
     };
 
-    const model = createResolveRiddleViewModel(collection);
+    const shuffled = useMemo(
+        () => shuffleAnswers(riddle?.answers ?? []),
+        [riddle?.answers],
+    );
 
-    return { ...model, riddle, isRiddleLoading, correct, selected, handleClick };
+    const model = createResolveRiddleViewModel(collection, {
+        riddle,
+        shuffledAnswers: shuffled,
+        selectedId: selected,
+        correctId: correct?.id,
+    });
+
+    return { ...model, isRiddleLoading, handleClick };
 };
